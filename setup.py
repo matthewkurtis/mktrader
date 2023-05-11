@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.0.1'
+VERSION = '0.0.2'
 DESCRIPTION = 'Stock Market Trading Framework'
 LONG_DESCRIPTION = 'A Framework for simple creation and deployment of trading strategies.'
 
@@ -15,7 +15,8 @@ setup(
     long_description=LONG_DESCRIPTION,
     packages=find_packages(),
     install_requires=[
-        'websocket-client'
+        'websocket-client',
+        'requests'
         ],
     keywords=['python', 'trading', 'stock', 'market'],
     classifiers=[
