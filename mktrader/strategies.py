@@ -1,11 +1,11 @@
-from .models import *
+from .models import Strategy, Candle, Engine
 from .logger import logger
 from typing import Optional
 from datetime import datetime
 
 
 class PrintStrategy(Strategy):
-    def __init__(self, engine:Engine, time_int:int, time_period:str, start:Optional[datetime] = None, end:Optional[datetime] = None, limit:Optional[int] = None):
+    def __init__(self, engine: Engine, time_int: int, time_period: str, start: Optional[datetime] = None, end: Optional[datetime] = None, limit: Optional[int] = None):
         super().__init__(engine)
         self.time_int = time_int
         self.time_period = time_period
@@ -16,9 +16,9 @@ class PrintStrategy(Strategy):
         self.indicators = [
             "heikin_ashi",
             "bars_down"
-        ] 
+        ]
 
-    def onData(self, candle:Candle):
+    def onData(self, candle: Candle):
         """
         This function is called by run.py on every new candle to DB
         Timeframe is determined by config above
@@ -30,4 +30,3 @@ class PrintStrategy(Strategy):
         logger.debug("---- CANDLE:")
         logger.debug(candle)
         logger.debug("--------------------")
-

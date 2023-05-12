@@ -1,19 +1,20 @@
 import json
 import requests
-from .models import *
+from typing import Optional
+from .models import Broker, BracketOrder
 from .logger import logger
 
 
 class Alpaca(Broker):
-    def __init__(self, api_key, api_secret, paper:Optional[bool]=False):
+    def __init__(self, api_key, api_secret, paper: Optional[bool] = False):
         self.api_key = api_key
         self.api_secret = api_secret
         self.paper = paper
 
-        ALPACA_TRADE_API_URL_PAPER = "https:/paper-api.alpaca.markets"   
+        ALPACA_TRADE_API_URL_PAPER = "https:/paper-api.alpaca.markets"
         ALPACA_TRADE_API_URL_LIVE = "https://api.alpaca.markets"
 
-        if self.paper == True:
+        if self.paper is True:
             self.api_url = ALPACA_TRADE_API_URL_PAPER
         else:
             self.api_url = ALPACA_TRADE_API_URL_LIVE
@@ -80,22 +81,22 @@ class Alpaca(Broker):
         else:
             for order in json_response:
                 if order['symbol'] == ticker:
-                    logger.info(f"PENDING ORDER FOUND WITH ID: {order['client_order_id']} ({order['id']}) - {order['symbol']} {order['side']} {order['qty']}") 
+                    logger.info(f"PENDING ORDER FOUND WITH ID: {order['client_order_id']} ({order['id']}) - {order['symbol']} {order['side']} {order['qty']}")
                     logger.info(order)
                     orders.append(order['id'])
-        return orders 
-            
-    def submit_order(self, order:BracketOrder) -> dict:
+        return orders
+
+    def submit_order(self, order: BracketOrder) -> dict:
         endpoint = '/v2/orders'
         url = self.api_url + endpoint
-        order = order.asAlpacaOrder() #:dict
-        logger.info(f"ORDER TO SUBMIT:\n{json.dumps(order)}\n") #:str
-        response = requests.post(url=url, headers=self.headers, data=json.dumps(order))#:str
-        json_response = response.json() #:dict
+        order = order.asAlpacaOrder()
+        logger.info(f"ORDER TO SUBMIT:\n{json.dumps(order)}\n")
+        response = requests.post(url=url, headers=self.headers, data=json.dumps(order))
+        json_response = response.json()
         logger.info(f"ORDER RESPONSE:\n{json_response}\n")
-        return json_response #:dict
+        return json_response
 
-    def cancel_order(self, order_id:str) -> None:
+    def cancel_order(self, order_id: str) -> None:
         endpoint = f'/v2/orders/{order_id}'
         url = self.api_url + endpoint
         requests.delete(url=url, headers=self.headers)

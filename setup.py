@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.0.2'
+VERSION = '0.0.3'
 DESCRIPTION = 'Stock Market Trading Framework'
 LONG_DESCRIPTION = 'A Framework for simple creation and deployment of trading strategies.'
 
@@ -10,6 +10,7 @@ setup(
     version=VERSION,
     author="Matthew K Murphy (MatthewKurtis)",
     author_email="<mkmurphy526@gmail.com>",
+    url="https://github.com/matthewkurtis/mktrader.git",
     description=DESCRIPTION,
     long_description_content_type="text/markdown",
     long_description=LONG_DESCRIPTION,

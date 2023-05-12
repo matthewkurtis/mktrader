@@ -5,9 +5,7 @@ from typing import List
 import copy
 
 
-
-
-def get_next_run_time(date_time:datetime, num: int, period: str) -> datetime:
+def get_next_run_time(date_time: datetime, num: int, period: str) -> datetime:
     """
     Calculates the next run time based on the given time period and number.
     Args:
@@ -53,11 +51,11 @@ def get_next_run_time(date_time:datetime, num: int, period: str) -> datetime:
     return dt
 
 
-def orderDict_to_Order(orders_dict:dict) -> List[Order]:
+def orderDict_to_Order(orders_dict: dict) -> List[Order]:
     """
     Convert dict (order) to Order object using dictionary comprehension for matching keys
     """
-    orders=[]
+    orders = []
     for order_item in orders_dict:
         logger.debug(f"ORDER-DICT: {order_item}")
         order_kwargs = {k: v for k, v in order_item.items() if k in Order.__annotations__}
@@ -69,22 +67,22 @@ def orderDict_to_Order(orders_dict:dict) -> List[Order]:
     return orders
 
 
-def process_orders(message:dict) -> List[Order]:
+def process_orders(message: dict) -> List[Order]:
     """
     This takes alpaca API order response as a dict and processes it into a list of Order objects
     Helpful for inserting into DB for tracking orders.
     """
     logger.debug(f"ORDER TO PROCESS: {message}")
     logger.debug(f"ORDER TO PROCESS TYPE = {type(message)}")
-    
+
     orders = []
-    
-    if "legs" in message and isinstance(message["legs"], (list, dict)): #This checks if "legs" is a key in message and if its value is either a list or dictionary, which are indexable objects in Python.
+
+    if "legs" in message and isinstance(message["legs"], (list, dict)):
         logger.debug("MESSAGE HAS LEGS, PROCESSING...")
         for leg in message["legs"]:
             orders.append(leg)
-            logger.debug("APPENDING LEGS TO ORDERS") 
-            
+            logger.debug("APPENDING LEGS TO ORDERS")
+
         # Create a copy of the message and remove the legs from the copy
         message_copy = copy.deepcopy(message)
         message_copy["legs"] = None
@@ -98,10 +96,7 @@ def process_orders(message:dict) -> List[Order]:
     return order_objects
 
 
-def log_candle_info(candle:Candle):
+def log_candle_info(candle: Candle):
     logger.info("\n--------------------------------------")
     logger.info(f"Candle Time: {candle.date}")
     logger.info(f"NEW CANDLE ---> {candle.ticker} O:{candle.open:.2f} H:{candle.high:.2f} L:{candle.low:.2f} C:{candle.close:.2f} - Stop:{candle.recent_low:.2f} - BarsDN:{candle.bars_dn}")
-
-
-

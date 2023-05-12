@@ -1,4 +1,4 @@
-from .models import *
+from .models import DataFeed, Candle
 from .logger import logger
 from typing import Optional, List
 from datetime import datetime
@@ -8,16 +8,15 @@ import json
 
 
 class Alpaca_Historical_Bars(DataFeed):
-    def __init__(self, engine, api_key:str, api_secret:str, sip:Optional[bool]=False):
+    ALPACA_DATA_API_URL = "https://data.alpaca.markets"
+
+    def __init__(self, engine, api_key: str, api_secret: str, sip: Optional[bool] = False):
         super().__init__(engine)
         self.api_key = api_key
         self.api_secret = api_secret
         self.sip = sip
 
-        self.ALPACA_DATA_API_URL = "https://data.alpaca.markets"
-
-
-    def get_candles(self, minute_catch_up:Optional[datetime]=None) -> List[Candle]:
+    def get_candles(self, minute_catch_up: Optional[datetime] = None) -> List[Candle]:
         time_period = self.engine.strategy.time_period
         time_int = self.engine.strategy.time_int
 
@@ -56,7 +55,7 @@ class Alpaca_Historical_Bars(DataFeed):
             bars_list = json_response["bars"][self.engine.asset.symbol]
         for bar in bars_list:
             candle = Candle(
-                ticker=self.engine.asset.symbol, 
+                ticker=self.engine.asset.symbol,
                 date=datetime.strptime(bar['t'], "%Y-%m-%dT%H:%M:%SZ"),
                 open=bar["o"],
                 high=bar["h"],
@@ -65,7 +64,7 @@ class Alpaca_Historical_Bars(DataFeed):
                 volume=bar["v"]
             )
             candles.append(candle)
-        
+
         if minute_catch_up is not None:
             print(f"MINUTE CATCH UP: {minute_catch_up}")
             minute_candles = [candle for candle in candles if candle.date >= minute_catch_up]
@@ -78,26 +77,25 @@ class Alpaca_Historical_Bars(DataFeed):
             return candles
 
 
+class Alpaca_Live_Bars(DataFeed):
+    ALPACA_STREAM_API_URL_IEX = "wss://stream.data.alpaca.markets/v2/iex"
+    ALPACA_STREAM_API_URL_SIP = "wss://stream.data.alpaca.markets/v2/sip"
+    ALPACA_STREAM_API_URL_CRYPTO = "wss://stream.data.alpaca.markets/v1beta2/crypto"
+    ALPACA_DATA_API_URL = "https://data.alpaca.markets"
 
-class Alpaca_Live_Bars(DataFeed):  
-    def __init__(self, engine, api_key:str, api_secret:str, sip:Optional[bool]=False):
+    def __init__(self, engine, api_key: str, api_secret: str, sip: Optional[bool] = False):
         super().__init__(engine)
         self.api_key = api_key
         self.api_secret = api_secret
         self.sip = sip
 
-        self.ALPACA_STREAM_API_URL_IEX = "wss://stream.data.alpaca.markets/v2/iex"
-        self.ALPACA_STREAM_API_URL_SIP = "wss://stream.data.alpaca.markets/v2/sip"
-        self.ALPACA_STREAM_API_URL_CRYPTO = "wss://stream.data.alpaca.markets/v1beta2/crypto"
-
-        if self.sip == True:
+        if self.sip is True:
             self.api_stream_url = self.ALPACA_STREAM_API_URL_SIP
         else:
             self.api_stream_url = self.ALPACA_STREAM_API_URL_IEX
 
-    def get_candles(self, minute_catch_up:Optional[datetime]=None):
+    def get_candles(self, minute_catch_up: Optional[datetime] = None):
         return Alpaca_Historical_Bars.get_candles(self, minute_catch_up)
-
 
     def get_live_candles(self) -> List[Candle]:
         if self.engine.asset.asset_class == "us_equity":
@@ -109,7 +107,7 @@ class Alpaca_Live_Bars(DataFeed):
         def on_open(ws):
             auth_message = {"action": "auth", "key": self.api_key, "secret": self.api_secret}
             ws.send(json.dumps(auth_message))
-            subscribe_message = {"action":"subscribe","bars":[self.engine.asset.symbol]}
+            subscribe_message = {"action": "subscribe", "bars": [self.engine.asset.symbol]}
             ws.send(json.dumps(subscribe_message))
 
         def on_message(ws, message):
@@ -117,17 +115,17 @@ class Alpaca_Live_Bars(DataFeed):
             for item in json_data:
                 if item['T'] == 'b':
                     candle = Candle(
-                        ticker=item['S'], 
-                        date=datetime.strptime(item['t'], "%Y-%m-%dT%H:%M:%SZ"), 
-                        open=float(item['o']), 
-                        high=float(item['h']), 
-                        low=float(item['l']), 
-                        close=float(item['c']), 
+                        ticker=item['S'],
+                        date=datetime.strptime(item['t'], "%Y-%m-%dT%H:%M:%SZ"),
+                        open=float(item['o']),
+                        high=float(item['h']),
+                        low=float(item['l']),
+                        close=float(item['c']),
                         volume=float(item['v'])
                     )
                     logger.debug(candle)
                     self.engine.on_candle(candle)
-                else: 
+                else:
                     logger.info(item)
 
         def on_close(ws):
@@ -135,6 +133,5 @@ class Alpaca_Live_Bars(DataFeed):
 
 
         # Connect to the WebSocket
-        ws = websocket.WebSocketApp(socket_url,on_open=on_open, on_message=on_message, on_close=on_close)
+        ws = websocket.WebSocketApp(socket_url, on_open=on_open, on_message=on_message, on_close=on_close)
         ws.run_forever()
-
