@@ -58,23 +58,28 @@ class Alpaca_Historical_Bars(DataFeed):
             logger.debug(f"URL = {url}")
             logger.debug(f"fetching candles from {url}")
             response = requests.get(url=url, headers=headers)
-            json_response = response.json() 
+            json_response = response.json()
+            if json_response["bars"] is None:
+                print("no bars after 1000 latest pulled.. skipping")
         candles = []
+
+
         if self.engine.asset.asset_class == "us_equity":
             bars_list = json_response["bars"]
         elif self.engine.asset.asset_class == "crypto":
             bars_list = json_response["bars"][self.engine.asset.symbol]
-        for bar in bars_list:
-            candle = Candle(
-                ticker=self.engine.asset.symbol,
-                date=datetime.strptime(bar['t'], "%Y-%m-%dT%H:%M:%SZ"),
-                open=bar["o"],
-                high=bar["h"],
-                low=bar["l"],
-                close=bar["c"],
-                volume=bar["v"]
-            )
-            candles.append(candle)
+        if json_response["bars"]:
+            for bar in bars_list:
+                candle = Candle(
+                    ticker=self.engine.asset.symbol,
+                    date=datetime.strptime(bar['t'], "%Y-%m-%dT%H:%M:%SZ"),
+                    open=bar["o"],
+                    high=bar["h"],
+                    low=bar["l"],
+                    close=bar["c"],
+                    volume=bar["v"]
+                )
+                candles.append(candle)
 
         if minute_catch_up is not None:
             print(f"MINUTE CATCH UP: {minute_catch_up}")
