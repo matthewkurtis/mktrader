@@ -1,7 +1,7 @@
 from .models import DataFeed, Candle
 from .logger import logger
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 import websocket
 import json
@@ -47,7 +47,18 @@ class Alpaca_Historical_Bars(DataFeed):
         logger.debug(f"fetching candles from {url}")
         response = requests.get(url=url, headers=headers)
         json_response = response.json()
-        # logger.debug(json_response)
+        if json_response["bars"] is None:
+            logger.debug(json_response)
+            logger.error("No bars found (weekend?)..retrying with start time as limit 1000 prior periods")
+            if time_period == "Min":
+                start = (datetime.utcnow() - timedelta(minutes=1000)).strftime("%Y-%m-%dT%H:%M:%SZ")
+            elif time_period == "Hour":
+                start = (datetime.utcnow() - timedelta(hours=1000)).strftime("%Y-%m-%dT%H:%M:%SZ")
+            url = f"{url}&start={start}"
+            logger.debug(f"URL = {url}")
+            logger.debug(f"fetching candles from {url}")
+            response = requests.get(url=url, headers=headers)
+            json_response = response.json() 
         candles = []
         if self.engine.asset.asset_class == "us_equity":
             bars_list = json_response["bars"]

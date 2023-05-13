@@ -1,7 +1,7 @@
 import json
 import requests
 from typing import Optional
-from .models import Broker, BracketOrder
+from .models import Broker, BracketOrder, Asset
 from .logger import logger
 
 
@@ -11,7 +11,7 @@ class Alpaca(Broker):
         self.api_secret = api_secret
         self.paper = paper
 
-        ALPACA_TRADE_API_URL_PAPER = "https:/paper-api.alpaca.markets"
+        ALPACA_TRADE_API_URL_PAPER = "https://paper-api.alpaca.markets"
         ALPACA_TRADE_API_URL_LIVE = "https://api.alpaca.markets"
 
         if self.paper is True:
@@ -37,7 +37,45 @@ class Alpaca(Broker):
         url = self.api_url + endpoint
         response = requests.get(url=url, headers=self.headers)
         json_response = response.json()
-        return json_response
+        assets = []
+        for asset_dict in json_response:
+            asset = Asset(
+                id=asset_dict["id"],
+                asset_class=asset_dict["class"],
+                exchange=asset_dict["exchange"],
+                symbol=asset_dict["symbol"],
+                name=asset_dict["name"],
+                status=asset_dict["status"],
+                tradable=asset_dict["tradable"],
+                marginable=asset_dict["marginable"],
+                maintenance_margin_requirement=asset_dict["maintenance_margin_requirement"],
+                shortable=asset_dict["shortable"],
+                easy_to_borrow=asset_dict["easy_to_borrow"],
+                fractionable=asset_dict["fractionable"]
+            )
+            assets.append(asset)
+        return assets
+
+    def get_asset(self, symbol):
+        endpoint = f'/v2/assets/{symbol}'
+        url = self.api_url + endpoint
+        response = requests.get(url=url, headers=self.headers)
+        asset_dict = response.json()
+        asset = Asset(
+            id=asset_dict["id"],
+            asset_class=asset_dict["class"],
+            exchange=asset_dict["exchange"],
+            symbol=asset_dict["symbol"],
+            name=asset_dict["name"],
+            status=asset_dict["status"],
+            tradable=asset_dict["tradable"],
+            marginable=asset_dict["marginable"],
+            maintenance_margin_requirement=asset_dict["maintenance_margin_requirement"],
+            shortable=asset_dict["shortable"],
+            easy_to_borrow=asset_dict["easy_to_borrow"],
+            fractionable=asset_dict["fractionable"]
+        )
+        return asset
 
     def in_position(self, ticker) -> bool:
         endpoint = f'/v2/positions/{ticker}'

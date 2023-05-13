@@ -155,7 +155,17 @@ class Broker(ABC):
         A function that retrieves all assets from broker
 
         Returns:
-            List[Stock]: A list of Asset objects with properties for each asset
+            List[Asset]: A list of Asset objects with properties for each asset
+        """
+        pass
+
+    @abstractmethod
+    def get_asset(self) -> Asset:
+        """
+        A function that retrieves all assets from broker
+
+        Returns:
+            Asset: A single Asset
         """
         pass
 
@@ -263,6 +273,9 @@ class Engine:
 
     def set_log_level(self, log_level: str) -> None:
         set_logs(log_level)
+
+    def set_asset(self, symbol: str) -> Asset:
+        self.asset = self.broker.get_asset(symbol)
 
     def run():
         pass
