@@ -24,7 +24,7 @@ class Alpaca(Broker):
             'APCA-API-SECRET-KEY': self.api_secret
         }
 
-    def market_is_open(self) -> bool:
+    def market_is_open(self, *args) -> bool:
         logger.debug("Checking if market is open...")
         endpoint = '/v2/clock'
         url = self.api_url + endpoint
